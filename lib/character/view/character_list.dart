@@ -9,7 +9,7 @@ class CharacterListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => CharacterCubit(),
+      create: (_) => CharacterListCubit(),
       child: const CharacterListView(),
     );
   }
