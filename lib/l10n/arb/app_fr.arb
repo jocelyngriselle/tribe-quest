@@ -1,10 +1,10 @@
 {
-    "@@locale": "en",
-    "characterListAppBarTitle": "Characters",
+    "@@locale": "fr",
+    "characterListAppBarTitle": "Personnages",
     "@characterListAppBarTitle": {
         "description": "Text shown in the AppBar of the Character List Page"
     },
-    "characterEditAppBarTitle": "Character",
+    "characterEditAppBarTitle": "Personnage",
     "@characterEditAppBarTitle": {
         "description": "Text shown in the AppBar of the Character Edit Page"
     }
