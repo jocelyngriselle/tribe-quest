@@ -1,6 +1,6 @@
 {
     "@@locale": "en",
-    "characterListAppBarTitle": "Characters",
+    "characterListAppBarTitle": "My characters",
     "@characterListAppBarTitle": {
         "description": "Text shown in the AppBar of the Character List Page"
     },

@@ -2,21 +2,48 @@ import 'package:bloc/bloc.dart';
 import 'package:tribe_quest/character/model/character_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class CharacterListCubit extends Cubit<List<Character>> {
-  CharacterListCubit() : super([]);
+class CharactersCubit extends Cubit<CharactersState> {
+  CharactersCubit() : super(CharactersInitialState());
+
+  void getCharacters() async {
+    try {
+      emit(CharactersLoadingState());
+      CollectionReference charactersCollection = FirebaseFirestore.instance.collection('characters');
+      final snapshot = await charactersCollection.get();
+      final characters = snapshot.docs.map((snapshot) => Character.fromSnapshot(snapshot)).toList();
+      emit(CharactersLoadedState(characters));
+    } catch (e) {
+      print(e);
+      emit(CharactersErrorState());
+    }
+  }
+}
+
+abstract class CharactersState {}
+
+class CharactersInitialState extends CharactersState {}
+
+class CharactersLoadingState extends CharactersState {}
+
+class CharactersErrorState extends CharactersState {}
+
+class CharactersLoadedState extends CharactersState {
+  CharactersLoadedState(this.characters);
+
+  final List<Character> characters;
 }
 
 class CharacterEditCubit extends Cubit<Character> {
-  CharacterEditCubit() : super(Character());
+  CharacterEditCubit({required Character character}) : super(character);
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   void save({String? name}) async {
-    CollectionReference characters = FirebaseFirestore.instance.collection(
+    CollectionReference charactersCollection = FirebaseFirestore.instance.collection(
       'characters',
     );
     state.name = name;
-    await characters.add(state.toJson());
+    await charactersCollection.add(state.toJson());
   }
 
   void incrementHealth() {
