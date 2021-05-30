@@ -4,7 +4,7 @@
     "@characterListAppBarTitle": {
         "description": "Text shown in the AppBar of the Character List Page"
     },
-    "characterEditAppBarTitle": "Character",
+    "characterEditAppBarTitle": "Edit your character",
     "@characterEditAppBarTitle": {
         "description": "Text shown in the AppBar of the Character Edit Page"
     }

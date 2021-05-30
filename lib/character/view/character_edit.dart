@@ -24,86 +24,143 @@ class CharacterEditView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    //final caracter = context.select((CharacterEditCubit cubit) => cubit.state);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.characterEditAppBarTitle)),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("name"),
-            Column(
-              children: [
-                const _HealthRow(),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.remove,
-                    ),
-                    Text("Stamina"),
-                    Icon(
-                      Icons.add,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const _ButtonsRow(),
-          ],
-        ),
+        child: _CharacterEditForm(),
       ),
     );
   }
 }
 
-class _HealthRow extends StatelessWidget {
-  const _HealthRow({
+class _CharacterEditForm extends StatefulWidget {
+  const _CharacterEditForm({
     Key? key,
   }) : super(key: key);
 
   @override
+  _CharacterEditFormState createState() => _CharacterEditFormState();
+}
+
+class _CharacterEditFormState extends State<_CharacterEditForm> {
+  final nameController = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
-    final caracter = context.watch<CharacterEditCubit>().state;
-    return Row(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        IconButton(
-          icon: Icon(
-            Icons.remove,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: TextField(
+            autocorrect: false,
+            controller: nameController,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headline6,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Name of the character',
+            ),
           ),
-          onPressed: () => context.read<CharacterEditCubit>().decreaseHealth(),
         ),
-        Text('Health ${caracter.health}'),
-        IconButton(
-          icon: Icon(
-            Icons.add,
-          ),
-          onPressed: () => context.read<CharacterEditCubit>().incrementHealth(),
+        Column(
+          children: [
+            _CaracteristicRow(
+              label: 'Health',
+              value: context.watch<CharacterEditCubit>().state.health,
+              increment: () => context.read<CharacterEditCubit>().incrementHealth(),
+              decrease: () => context.read<CharacterEditCubit>().decreaseHealth(),
+            ),
+            _CaracteristicRow(
+              label: "Attack",
+              value: context.watch<CharacterEditCubit>().state.attack,
+              increment: () => context.read<CharacterEditCubit>().incrementAttack(),
+              decrease: () => context.read<CharacterEditCubit>().decreaseAttack(),
+            ),
+            _CaracteristicRow(
+              label: "Defence",
+              value: context.watch<CharacterEditCubit>().state.defence,
+              increment: () => context.read<CharacterEditCubit>().incrementDefence(),
+              decrease: () => context.read<CharacterEditCubit>().decreaseDefence(),
+            ),
+            _CaracteristicRow(
+              label: "Magik",
+              value: context.watch<CharacterEditCubit>().state.magik,
+              increment: () => context.read<CharacterEditCubit>().incrementMagik(),
+              decrease: () => context.read<CharacterEditCubit>().decreaseMagik(),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Annuler',
+                style: Theme.of(context).textTheme.button,
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => context.read<CharacterEditCubit>().save(
+                    name: nameController.text,
+                  ),
+              child: Text(
+                'Sauvegarder',
+                style: Theme.of(context).textTheme.button,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    nameController.dispose();
+    super.dispose();
+  }
 }
 
-class _ButtonsRow extends StatelessWidget {
-  const _ButtonsRow({
+class _CaracteristicRow extends StatelessWidget {
+  const _CaracteristicRow({
     Key? key,
+    this.decrease,
+    this.increment,
+    required this.label,
+    required this.value,
   }) : super(key: key);
+
+  final VoidCallback? decrease;
+  final VoidCallback? increment;
+  final String label;
+  final int value;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Cancel'),
+        IconButton(
+          icon: const Icon(
+            Icons.remove,
+          ),
+          onPressed: decrease,
         ),
-        ElevatedButton(
-          onPressed: () => context.read<CharacterEditCubit>().save(),
-          child: const Text('Save'),
+        Text(
+          '$label $value',
+          style: Theme.of(context).textTheme.headline6,
+        ),
+        IconButton(
+          icon: const Icon(
+            Icons.add,
+          ),
+          onPressed: increment,
         ),
       ],
     );

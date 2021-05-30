@@ -53,6 +53,12 @@ $ open coverage/index.html
 
 ---
 
+## Code Generation 🦾
+
+flutter pub run build_runner watch --delete-conflicting-outputs
+
+---
+
 ## Working with Translations 🌐
 
 This project relies on [flutter_localizations][flutter_localizations_link] and follows the [official internationalization guide for Flutter][internationalization_link].

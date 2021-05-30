@@ -7,26 +7,16 @@ class CharacterListCubit extends Cubit<List<Character>> {
 }
 
 class CharacterEditCubit extends Cubit<Character> {
-  CharacterEditCubit() : super(Character()) {
-    print("created");
-    print(state);
-  }
+  CharacterEditCubit() : super(Character());
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  void save() async {
+  void save({String? name}) async {
     CollectionReference characters = FirebaseFirestore.instance.collection(
       'characters',
     );
-    await characters
-        .add({
-          'health': state.health,
-          'attack': state.attack,
-        })
-        .then((value) => print("User Added"))
-        .catchError((error) => print("Failed to add user: $error"));
-
-    emit(state);
+    state.name = name;
+    await characters.add(state.toJson());
   }
 
   void incrementHealth() {
@@ -35,5 +25,29 @@ class CharacterEditCubit extends Cubit<Character> {
 
   void decreaseHealth() {
     emit(state.copyWith(health: state.health - 1));
+  }
+
+  void incrementAttack() {
+    emit(state.copyWith(attack: state.attack + 1));
+  }
+
+  void decreaseAttack() {
+    emit(state.copyWith(attack: state.attack - 1));
+  }
+
+  void incrementDefence() {
+    emit(state.copyWith(defence: state.defence + 1));
+  }
+
+  void decreaseDefence() {
+    emit(state.copyWith(defence: state.defence - 1));
+  }
+
+  void incrementMagik() {
+    emit(state.copyWith(magik: state.magik + 1));
+  }
+
+  void decreaseMagik() {
+    emit(state.copyWith(magik: state.magik - 1));
   }
 }
