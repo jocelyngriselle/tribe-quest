@@ -55,13 +55,14 @@ class _CharacterEditFormState extends State<_CharacterEditForm> {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<CharacterEditCubit>();
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Hero(
           tag: widget.character.hashCode,
-          child: CircleAvatar(
+          child: const CircleAvatar(
             radius: 100.0,
             backgroundImage: NetworkImage('https://i.pinimg.com/474x/3b/6b/a5/3b6ba5ac7fbd1a1478990856b8827c3e.jpg'),
           ),
@@ -79,40 +80,52 @@ class _CharacterEditFormState extends State<_CharacterEditForm> {
             ),
           ),
         ),
-        Column(
-          children: [
-            CaracteristicRow(
-              label: 'Health',
-              value: context.watch<CharacterEditCubit>().state.health,
-              increment: () => context.read<CharacterEditCubit>().incrementHealth(),
-              decrease: () => context.read<CharacterEditCubit>().decreaseHealth(),
-            ),
-            CaracteristicRow(
-              label: "Attack",
-              value: context.watch<CharacterEditCubit>().state.attack,
-              increment: () => context.read<CharacterEditCubit>().incrementAttack(),
-              decrease: () => context.read<CharacterEditCubit>().decreaseAttack(),
-            ),
-            CaracteristicRow(
-              label: "Defence",
-              value: context.watch<CharacterEditCubit>().state.defence,
-              increment: () => context.read<CharacterEditCubit>().incrementDefence(),
-              decrease: () => context.read<CharacterEditCubit>().decreaseDefence(),
-            ),
-            CaracteristicRow(
-              label: "Magik",
-              value: context.watch<CharacterEditCubit>().state.magik,
-              increment: () => context.read<CharacterEditCubit>().incrementMagik(),
-              decrease: () => context.read<CharacterEditCubit>().decreaseMagik(),
-            ),
-          ],
+        StreamBuilder<Character>(
+          stream: context.watch<CharacterEditCubit>().state.characterStream,
+          builder: (context, snapshot) {
+            if (snapshot.data == null) return const SizedBox();
+            final editingCharacter = snapshot.data!;
+            final health = editingCharacter.health;
+            final magik = editingCharacter.magik;
+            final defence = editingCharacter.defence;
+            final attack = editingCharacter.attack;
+            final skillPoints = editingCharacter.skillPoints;
+            return Column(
+              children: [
+                CaracteristicRow(
+                  label: 'Skills points',
+                  value: skillPoints,
+                ),
+                CaracteristicRow(
+                  label: 'Health',
+                  value: health,
+                  increment: editingCharacter.canIncreaseHealth() ? cubit.incrementHealth : null,
+                ),
+                CaracteristicRow(
+                  label: 'Attack',
+                  value: attack,
+                  increment: editingCharacter.canIncrease(attack) ? cubit.incrementAttack : null,
+                ),
+                CaracteristicRow(
+                  label: 'Defence',
+                  value: defence,
+                  increment: editingCharacter.canIncrease(defence) ? cubit.incrementDefence : null,
+                ),
+                CaracteristicRow(
+                  label: 'Magik',
+                  value: magik,
+                  increment: editingCharacter.canIncrease(magik) ? cubit.incrementMagik : null,
+                ),
+              ],
+            );
+          },
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                context.read<CharacterEditCubit>().reset();
               },
               child: Text(
                 'Annuler',
@@ -120,9 +133,13 @@ class _CharacterEditFormState extends State<_CharacterEditForm> {
               ),
             ),
             ElevatedButton(
-              onPressed: () => context.read<CharacterEditCubit>().save(
-                    name: nameController.text,
-                  ),
+              onPressed: () async {
+                await context.read<CharacterEditCubit>().save(
+                      name: nameController.text,
+                    );
+                const snackBar = SnackBar(content: Text('Saved!'));
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              },
               child: Text(
                 'Sauvegarder',
                 style: Theme.of(context).textTheme.button,
@@ -158,26 +175,25 @@ class CaracteristicRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(
-            Icons.remove,
-          ),
-          onPressed: decrease,
-        ),
-        Text(
-          '$label $value',
-          style: Theme.of(context).textTheme.headline6,
-        ),
-        IconButton(
-          icon: const Icon(
-            Icons.add,
-          ),
-          onPressed: increment,
-        ),
-      ],
+    return ListTile(
+      trailing: increment != null
+          ? IconButton(
+              icon: const Icon(
+                Icons.add,
+              ),
+              onPressed: increment,
+            )
+          : SizedBox(),
+      title: Text(
+        label,
+        style: Theme.of(context).textTheme.headline6,
+      ),
+      leading: Text(
+        value.toString(),
+        style: Theme.of(context).textTheme.headline6!.copyWith(
+              color: Colors.grey,
+            ),
+      ),
     );
   }
 }

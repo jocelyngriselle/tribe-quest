@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tribe_quest/character/model/character_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -8,12 +9,17 @@ class CharactersCubit extends Cubit<CharactersState> {
   void getCharacters() async {
     try {
       emit(CharactersLoadingState());
-      CollectionReference charactersCollection = FirebaseFirestore.instance.collection('characters');
+      final charactersCollection = FirebaseFirestore.instance.collection(
+        'characters',
+      );
       final snapshot = await charactersCollection.get();
-      final characters = snapshot.docs.map((snapshot) => Character.fromSnapshot(snapshot)).toList();
+      final characters = snapshot.docs
+          .map((snapshot) => Character.fromSnapshot(
+                snapshot,
+              ))
+          .toList();
       emit(CharactersLoadedState(characters));
     } catch (e) {
-      print(e);
       emit(CharactersErrorState());
     }
   }
@@ -33,48 +39,75 @@ class CharactersLoadedState extends CharactersState {
   final List<Character> characters;
 }
 
-class CharacterEditCubit extends Cubit<Character> {
-  CharacterEditCubit({required Character character}) : super(character);
+abstract class CharacterEditState {
+  CharacterEditState(this.characterStream);
+  final BehaviorSubject<Character> characterStream;
+}
+
+class CharacterInitialState extends CharacterEditState {
+  CharacterInitialState(
+    BehaviorSubject<Character> characterStream,
+  ) : super(characterStream);
+}
+
+class CharacterEditingState extends CharacterEditState {
+  CharacterEditingState(
+    BehaviorSubject<Character> characterStream,
+  ) : super(characterStream);
+}
+
+class CharacterEditingSuccessState extends CharacterEditState {
+  CharacterEditingSuccessState(
+    BehaviorSubject<Character> characterStream,
+  ) : super(characterStream);
+}
+
+class CharacterEditCubit extends Cubit<CharacterEditState> {
+  CharacterEditCubit({required this.character})
+      : initialCharacter = Character.clone(character),
+        super(CharacterInitialState(
+          BehaviorSubject.seeded(character),
+        ));
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  Character character;
+  final Character initialCharacter;
 
-  void save({String? name}) async {
-    CollectionReference charactersCollection = FirebaseFirestore.instance.collection(
+  Future<void> save({String? name}) async {
+    final charactersCollection = FirebaseFirestore.instance.collection(
       'characters',
     );
-    state.name = name;
-    await charactersCollection.add(state.toJson());
+    character.name = name;
+    await charactersCollection.add(character.toJson());
+  }
+
+  void reset() {
+    character = Character.clone(initialCharacter);
+    state.characterStream.add(character);
   }
 
   void incrementHealth() {
-    emit(state.copyWith(health: state.health + 1));
-  }
-
-  void decreaseHealth() {
-    emit(state.copyWith(health: state.health - 1));
+    character.increaseHealth();
+    state.characterStream.add(character);
   }
 
   void incrementAttack() {
-    emit(state.copyWith(attack: state.attack + 1));
-  }
-
-  void decreaseAttack() {
-    emit(state.copyWith(attack: state.attack - 1));
+    character.increaseAttack();
+    state.characterStream.add(character);
   }
 
   void incrementDefence() {
-    emit(state.copyWith(defence: state.defence + 1));
-  }
-
-  void decreaseDefence() {
-    emit(state.copyWith(defence: state.defence - 1));
+    character.increaseDefence();
+    state.characterStream.add(character);
   }
 
   void incrementMagik() {
-    emit(state.copyWith(magik: state.magik + 1));
+    character.increaseMagik();
+    state.characterStream.add(character);
   }
 
-  void decreaseMagik() {
-    emit(state.copyWith(magik: state.magik - 1));
+  @override
+  void dispose() {
+    // TODO s.close();
   }
 }
