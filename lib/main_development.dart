@@ -8,16 +8,24 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:bloc/bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:tribe_quest/app/app.dart';
 import 'package:tribe_quest/app/app_bloc_observer.dart';
+import 'package:tribe_quest/auth/auth.dart';
+import 'package:tribe_quest/character/service/character_service.dart';
 
-void main() {
+void main() async {
   Bloc.observer = AppBlocObserver();
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
   };
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  GetIt.I.registerSingleton<CharacterService>(CharacterService());
+  GetIt.I.registerSingleton<AuthenticationRepository>(AuthenticationRepository());
 
   runZonedGuarded(
     () => runApp(App()),
