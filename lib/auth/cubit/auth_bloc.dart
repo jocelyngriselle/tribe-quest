@@ -6,7 +6,8 @@ import 'package:tribe_quest/auth/auth.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
   AuthenticationBloc() : super(Uninitialized());
-  final AuthenticationService _authenticationService = GetIt.instance.get<AuthenticationService>();
+
+  final AuthenticationService _authService = GetIt.instance.get<AuthenticationService>();
 
   @override
   Stream<AuthenticationState> mapEventToState(
@@ -14,12 +15,24 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   ) async* {
     if (event is AppStarted) {
       yield* _mapAppStartedToState();
+    } else if (event is SignOut) {
+      yield* _mapSignOutToState();
     }
   }
 
   Stream<AuthenticationState> _mapAppStartedToState() async* {
     try {
-      final userId = _authenticationService.currentUserId;
+      final userId = _authService.currentUserId;
+      yield userId == null ? Unauthenticated() : Authenticated(userId);
+    } catch (_) {
+      yield Unauthenticated();
+    }
+  }
+
+  Stream<AuthenticationState> _mapSignOutToState() async* {
+    try {
+      await _authService.logOut();
+      final userId = _authService.currentUserId;
       yield userId == null ? Unauthenticated() : Authenticated(userId);
     } catch (_) {
       yield Unauthenticated();
@@ -43,9 +56,6 @@ class Authenticated extends AuthenticationState {
 
   @override
   List<Object> get props => [userId];
-
-  @override
-  String toString() => 'Authenticated { userId: $userId }';
 }
 
 class Unauthenticated extends AuthenticationState {}
@@ -53,6 +63,11 @@ class Unauthenticated extends AuthenticationState {}
 abstract class AuthenticationEvent extends Equatable {}
 
 class AppStarted extends AuthenticationEvent {
+  @override
+  List<Object> get props => [];
+}
+
+class SignOut extends AuthenticationEvent {
   @override
   List<Object> get props => [];
 }

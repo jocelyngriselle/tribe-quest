@@ -23,21 +23,17 @@ class App extends StatelessWidget {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         title: 'Tribe Quest',
-        routes: {
-          '/': (context) {
-            return BlocBuilder<AuthenticationBloc, AuthenticationState>(
-              builder: (context, state) {
-                if (state is Authenticated) {
-                  return const CharacterListPage();
-                }
-                if (state is Unauthenticated) {
-                  return const LoginPage();
-                }
-                return const Center(child: CircularProgressIndicator());
-              },
-            );
+        home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+          builder: (context, state) {
+            if (state is Authenticated) {
+              return const CharacterListPage();
+            }
+            if (state is Unauthenticated) {
+              return const LoginPage();
+            }
+            return const Center(child: CircularProgressIndicator());
           },
-        },
+        ),
       ),
     );
   }
