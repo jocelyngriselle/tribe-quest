@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
-import 'package:get_it/get_it.dart';
 import 'package:tribe_quest/auth/auth.dart';
 
 class SignUpPage extends StatelessWidget {
@@ -18,9 +17,7 @@ class SignUpPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: BlocProvider<SignUpCubit>(
-          create: (_) => SignUpCubit(
-            GetIt.instance.get<AuthenticationRepository>(),
-          ),
+          create: (_) => SignUpCubit(),
           child: const SignUpForm(),
         ),
       ),

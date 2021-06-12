@@ -1,12 +1,13 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
+import 'package:get_it/get_it.dart';
 import 'package:tribe_quest/auth/auth.dart';
 
 class SignUpCubit extends Cubit<SignUpState> {
-  SignUpCubit(this._authenticationRepository) : super(const SignUpState());
+  SignUpCubit() : super(const SignUpState());
 
-  final AuthenticationRepository _authenticationRepository;
+  final AuthenticationService _authenticationService = GetIt.instance.get<AuthenticationService>();
 
   void emailChanged(String value) {
     final email = Email.dirty(value);
@@ -56,7 +57,7 @@ class SignUpCubit extends Cubit<SignUpState> {
     if (!state.status.isValidated) return;
     emit(state.copyWith(status: FormzStatus.submissionInProgress));
     try {
-      await _authenticationRepository.signUp(
+      await _authenticationService.signUp(
         email: state.email.value,
         password: state.password.value,
       );

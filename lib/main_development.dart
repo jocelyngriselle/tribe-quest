@@ -24,9 +24,12 @@ void main() async {
   };
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  GetIt.I.registerSingleton<CharacterService>(CharacterService());
-  GetIt.I.registerSingleton<AuthenticationRepository>(AuthenticationRepository());
-
+  GetIt.I.registerSingleton<AuthenticationService>(
+    AuthenticationService(),
+  );
+  GetIt.I.registerSingleton<CharacterService>(
+    CharacterService(),
+  );
   runZonedGuarded(
     () => runApp(App()),
     (error, stackTrace) => log(error.toString(), stackTrace: stackTrace),
