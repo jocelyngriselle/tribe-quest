@@ -17,9 +17,6 @@ class AuthenticationService {
   /// Returns the current user.
   String? get currentUserId => _firebaseAuth.currentUser?.uid;
 
-  /// Returns true if user isAuthenticated on firebase
-  // TODO unused ? bool isAuthenticated() => currentUserId == null;
-
   /// Creates a new user with the provided [email] and [password].
   /// Throws a [SignUpFailure] if an exception occurs.
   Future<void> signUp({required String email, required String password}) async {
