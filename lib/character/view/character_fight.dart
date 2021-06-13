@@ -31,7 +31,7 @@ class _CharacterFightView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _cubit = context.read<CharacterFightCubit>();
+    final _cubit = context.watch<CharacterFightCubit>();
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -56,51 +56,55 @@ class _CharacterFightView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          ElevatedButton(
-            key: const Key('characterListView_add_floatingActionButton'),
-            onPressed: () => Navigator.of(context).popUntil(
-              (route) => route.isFirst,
+          if (_cubit.state is CharacterFighEndedState)
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CharacterListPage(),
+                ),
+              ),
+              child: const Text('NEXT'),
             ),
-            // TODO descativate this button when fight ended
-            child: const Text('NEXT'),
-          ),
         ],
       ),
       body: SafeArea(
         child: BlocBuilder<CharacterFightCubit, CharacterFightState>(
           builder: (context, state) {
             if (state is CharacterFighEndedState) {
-              final winner = (state as CharacterFighEndedState).winner;
-              final rounds = (state as CharacterFighEndedState).rounds;
+              final imgUrl = state.winner == null ? 'https://picsum.photos/200' : (state.winner!.imgUrl ?? Character.defaultImgUrl);
               return Stack(
                 children: [
                   ListView.separated(
-                    itemCount: rounds.length,
+                    itemCount: state.rounds.length,
                     itemBuilder: (
                       context,
                       index,
                     ) =>
-                        _RoundItem(round: rounds[index]),
+                        _RoundItem(
+                      round: state.rounds[index],
+                      index: index,
+                    ),
                     separatorBuilder: (context, index) => Divider(
                       color: Colors.black.withOpacity(0.5),
                     ),
                   ),
                   Center(
                     child: Hero(
-                      tag: winner.hashCode,
+                      tag: state.winner.hashCode,
                       child: CircleAvatar(
                         radius: 100.0,
                         backgroundImage: NetworkImage(
-                          winner?.imgUrl! ?? '',
-                        ), // TODO better
+                          imgUrl,
+                        ),
                       ),
                     ),
                   ),
                   Center(
                     child: Text(
-                      'VICTORY',
+                      state.winner != null ? 'WIN' : 'DRAW',
                       style: Theme.of(context).textTheme.headline3?.copyWith(
-                            color: Colors.blue,
+                            color: Colors.white,
                           ),
                     ),
                   ),
@@ -114,7 +118,10 @@ class _CharacterFightView extends StatelessWidget {
                   context,
                   index,
                 ) =>
-                    _RoundItem(round: rounds[index]),
+                    _RoundItem(
+                  round: rounds[index],
+                  index: index,
+                ),
                 separatorBuilder: (context, index) => Divider(
                   color: Colors.black.withOpacity(0.5),
                 ),
@@ -133,9 +140,11 @@ class _RoundItem extends StatelessWidget {
   const _RoundItem({
     Key? key,
     required this.round,
+    required this.index,
   }) : super(key: key);
 
   final Round round;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
@@ -149,12 +158,14 @@ class _RoundItem extends StatelessWidget {
             character: round.character,
           ),
         ),
-        Flexible(
-          flex: 1,
-          child: _RoundTile(
-            round: round,
+        if (index != 0)
+          Flexible(
+            flex: 1,
+            child: _RoundTile(
+              round: round,
+              index: index,
+            ),
           ),
-        ),
         Flexible(
           flex: 3,
           child: _FighterTile(
@@ -244,15 +255,21 @@ class _RoundTile extends StatelessWidget {
   const _RoundTile({
     Key? key,
     required this.round,
+    required this.index,
   }) : super(key: key);
 
   final Round round;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
     const iconSize = 16.0;
     return Column(
       children: [
+        Text(
+          'ROUND $index',
+          style: Theme.of(context).textTheme.caption,
+        ),
         RichText(
           text: TextSpan(
             children: [
