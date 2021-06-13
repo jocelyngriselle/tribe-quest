@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tribe_quest/character/character.dart';
-import 'package:tribe_quest/l10n/l10n.dart';
 
 class CharacterEditPage extends StatelessWidget {
   CharacterEditPage({Key? key, Character? character})
@@ -27,9 +26,8 @@ class CharacterEditView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.characterEditAppBarTitle)),
+      appBar: AppBar(),
       body: SafeArea(
         child: _CharacterEditForm(
           character: character,
@@ -39,19 +37,12 @@ class CharacterEditView extends StatelessWidget {
   }
 }
 
-class _CharacterEditForm extends StatefulWidget {
+class _CharacterEditForm extends StatelessWidget {
   const _CharacterEditForm({
     Key? key,
     required this.character,
   }) : super(key: key);
   final Character character;
-
-  @override
-  _CharacterEditFormState createState() => _CharacterEditFormState();
-}
-
-class _CharacterEditFormState extends State<_CharacterEditForm> {
-  final nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -60,31 +51,22 @@ class _CharacterEditFormState extends State<_CharacterEditForm> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Hero(
-          tag: widget.character.hashCode,
-          child: const CircleAvatar(
-            radius: 100.0,
-            backgroundImage: NetworkImage('https://i.pinimg.com/474x/3b/6b/a5/3b6ba5ac7fbd1a1478990856b8827c3e.jpg'),
-          ),
-        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: TextField(
+          child: TextFormField(
+            initialValue: character.name,
+            key: const Key('characterEditForm_nameInput_textField'),
             autocorrect: false,
-            controller: nameController..text = widget.character.name ?? 'Nom du personnage',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headline6,
+            onChanged: cubit.nameChanged,
+            keyboardType: TextInputType.name,
             decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Name of the character',
+              labelText: 'name',
             ),
           ),
         ),
-        StreamBuilder<Character>(
-          stream: context.watch<CharacterEditCubit>().state.characterStream,
-          builder: (context, snapshot) {
-            if (snapshot.data == null) return const SizedBox();
-            final editingCharacter = snapshot.data!;
+        BlocBuilder<CharacterEditCubit, CharacterEditState>(
+          builder: (context, state) {
+            final editingCharacter = state.character;
             final health = editingCharacter.health;
             final magik = editingCharacter.magik;
             final defence = editingCharacter.defence;
@@ -95,26 +77,50 @@ class _CharacterEditFormState extends State<_CharacterEditForm> {
                 CaracteristicRow(
                   label: 'Skills points',
                   value: skillPoints,
+                  icon: const Icon(
+                    Icons.star,
+                    color: Colors.blue,
+                  ),
                 ),
                 CaracteristicRow(
                   label: 'Health',
                   value: health,
+                  icon: const Icon(
+                    Icons.favorite,
+                    color: Colors.red,
+                  ),
                   increment: editingCharacter.canIncreaseHealth() ? cubit.incrementHealth : null,
+                  decrease: context.read<CharacterEditCubit>().canDecreaseHealth() ? cubit.decrementHealth : null,
                 ),
                 CaracteristicRow(
                   label: 'Attack',
                   value: attack,
+                  icon: const Icon(
+                    Icons.bolt,
+                    color: Colors.orange,
+                  ),
                   increment: editingCharacter.canIncrease(attack) ? cubit.incrementAttack : null,
+                  decrease: context.read<CharacterEditCubit>().canDecreaseAttack() ? cubit.decreaseAttack : null,
                 ),
                 CaracteristicRow(
                   label: 'Defence',
                   value: defence,
+                  icon: const Icon(
+                    Icons.shield,
+                    color: Colors.black,
+                  ),
                   increment: editingCharacter.canIncrease(defence) ? cubit.incrementDefence : null,
+                  decrease: context.read<CharacterEditCubit>().canDecreaseDefence() ? cubit.decreaseDefence : null,
                 ),
                 CaracteristicRow(
                   label: 'Magik',
                   value: magik,
+                  icon: const Icon(
+                    Icons.auto_awesome,
+                    color: Colors.green,
+                  ),
                   increment: editingCharacter.canIncrease(magik) ? cubit.incrementMagik : null,
+                  decrease: context.read<CharacterEditCubit>().canDecreaseMagik() ? cubit.decreaseMagik : null,
                 ),
               ],
             );
@@ -127,35 +133,28 @@ class _CharacterEditFormState extends State<_CharacterEditForm> {
               onPressed: () {
                 context.read<CharacterEditCubit>().reset();
               },
-              child: Text(
-                'Annuler',
-                style: Theme.of(context).textTheme.button,
+              child: const Text(
+                'CANCEL',
               ),
             ),
             ElevatedButton(
               onPressed: () async {
-                await context.read<CharacterEditCubit>().save(
-                      name: nameController.text,
-                    );
-                const snackBar = SnackBar(content: Text('Saved!'));
-                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                await context.read<CharacterEditCubit>().save();
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CharacterListPage(),
+                  ),
+                );
               },
-              child: Text(
-                'Sauvegarder',
-                style: Theme.of(context).textTheme.button,
+              child: const Text(
+                'SAVE',
               ),
             ),
           ],
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    // Clean up the controller when the widget is disposed.
-    nameController.dispose();
-    super.dispose();
   }
 }
 
@@ -166,33 +165,53 @@ class CaracteristicRow extends StatelessWidget {
     this.increment,
     required this.label,
     required this.value,
+    required this.icon,
   }) : super(key: key);
 
   final VoidCallback? decrease;
   final VoidCallback? increment;
   final String label;
   final int value;
+  final Icon icon;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      trailing: increment != null
-          ? IconButton(
-              icon: const Icon(
-                Icons.add,
-              ),
-              onPressed: increment,
-            )
-          : SizedBox(),
-      title: Text(
-        label,
-        style: Theme.of(context).textTheme.headline6,
+      trailing: IconButton(
+        key: Key('characterEditView_increment${label}_floatingActionButton'),
+        icon: Icon(
+          Icons.add,
+          color: increment == null ? Colors.transparent : Theme.of(context).primaryColor,
+        ),
+        onPressed: increment,
       ),
-      leading: Text(
-        value.toString(),
-        style: Theme.of(context).textTheme.headline6!.copyWith(
-              color: Colors.grey,
-            ),
+      leading: IconButton(
+        icon: Icon(
+          Icons.remove,
+          color: decrease == null ? Colors.transparent : Theme.of(context).primaryColor,
+        ),
+        onPressed: decrease,
+      ),
+      title: Center(
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.headline6,
+        ),
+      ),
+      subtitle: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          icon,
+          const SizedBox(
+            width: 20,
+          ),
+          Text(
+            value.toString(),
+            style: Theme.of(context).textTheme.headline6!.copyWith(
+                  color: Colors.grey,
+                ),
+          ),
+        ],
       ),
     );
   }
