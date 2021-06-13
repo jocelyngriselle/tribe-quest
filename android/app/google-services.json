@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "100994391807",
+    "project_id": "tribequest-c04f0",
+    "storage_bucket": "tribequest-c04f0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:100994391807:android:5dcc7271e0b89570d6f6ca",
+        "android_client_info": {
+          "package_name": "com.example.tribeQuest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "100994391807-c8s0agu3bk46u8ie59sf2105shj2s5jd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOrQ2rFflk4pkqOeSEweQhW0_DKKaPzmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "100994391807-c8s0agu3bk46u8ie59sf2105shj2s5jd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "100994391807-9mavvo1iehbpm7t09mmec42e3grovtgm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.tribeQuest"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
