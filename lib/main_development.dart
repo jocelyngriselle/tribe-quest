@@ -31,7 +31,7 @@ void main() async {
     CharacterService(),
   );
   runZonedGuarded(
-    () => runApp(App()),
+    () => runApp(const App()),
     (error, stackTrace) => log(error.toString(), stackTrace: stackTrace),
   );
 }
