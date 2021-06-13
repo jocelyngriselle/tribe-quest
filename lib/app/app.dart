@@ -6,6 +6,7 @@ import 'package:tribe_quest/character/view/character_list.dart';
 import 'package:tribe_quest/l10n/l10n.dart';
 
 class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AuthenticationBloc>(
@@ -23,7 +24,12 @@ class App extends StatelessWidget {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         title: 'Tribe Quest',
-        home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+        home: BlocConsumer<AuthenticationBloc, AuthenticationState>(
+          listener: (context, state) {
+            if (state is Unauthenticated) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            }
+          },
           builder: (context, state) {
             if (state is Authenticated) {
               return const CharacterListPage();
