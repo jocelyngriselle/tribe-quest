@@ -18,7 +18,7 @@ class Character {
     this.imgUrl,
     this.id,
     this.userId,
-    this.rank = 0,
+    this.rank = 1,
     fights,
   }) : fights = fights ?? [];
 
@@ -30,6 +30,7 @@ class Character {
           attack: character.attack,
           magik: character.magik,
           defence: character.defence,
+          userId: character.userId,
           id: character.id,
           rank: character.rank,
           fights: character.fights,
@@ -63,6 +64,8 @@ class Character {
 
   Map<String, dynamic> toJson() => _$CharacterToJson(this);
 
+  static const defaultName = 'Unknown';
+  static const defaultImgUrl = 'https://randomuser.me/api/portraits/men/1.jpg';
   String? name;
   String? imgUrl;
   int health;
@@ -77,22 +80,25 @@ class Character {
 
   @override
   String toString() {
-    return name ?? 'Inconnu'; // TODO handle no name globally
+    return '${name ?? defaultName} - $rank';
   }
 
   bool get canFight {
-    if (lastLooseDate == null) return true; // TODO don't use lastuse date twice
-    return lastLooseDate!.compareTo(DateTime.now().subtract(const Duration(hours: 1))) > 0;
+    if (lastLooseDate == null) return true;
+    return lastLooseDate!.compareTo(
+          DateTime.now().subtract(const Duration(hours: 1)),
+        ) >
+        0;
   }
 
   DateTime? get lastLooseDate => fights.firstWhereOrNull((element) => false)?.date;
 
   int attackOpponent(Character opponent) {
     if (attack <= 0) return 0;
-    final dice = new Random().nextInt(attack + 1); // max is exclusive
+    final dice = Random().nextInt(attack + 1); // max is exclusive
     var diff = dice - opponent.defence;
     if (diff <= 0) return 0;
-    if (diff == opponent.magik) {
+    if (diff == magik) {
       diff += diff;
     }
     opponent.health -= diff;
@@ -112,8 +118,7 @@ class Character {
 
   int skillPointDecrease(int points) => points == 0 ? 1 : (points / 5).ceil();
 
-  bool canIncrease(int points) => skillPoints > (points / 5).ceil();
-  //bool canDecrease(int points) => skillPoints > ((points - 1) / 5).ceil();
+  bool canIncrease(int points) => skillPoints >= skillPointDecrease(points);
 
   void increaseAttack() {
     skillPoints -= skillPointDecrease(attack);

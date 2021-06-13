@@ -1,4 +1,11 @@
-export 'cubit/character_cubit.dart';
+export 'cubit/character_detail_cubit.dart';
+export 'cubit/character_edit_cubit.dart';
+export 'cubit/character_fight_cubit.dart';
+export 'cubit/character_list_cubit.dart';
 export 'model/character_model.dart';
+export 'model/fight_model.dart';
+export 'service/character_service.dart';
+export 'view/character_detail.dart';
 export 'view/character_edit.dart';
+export 'view/character_fight.dart';
 export 'view/character_list.dart';
